@@ -47,23 +47,25 @@ def solve(M):
 
 	# GLPK().solve(prob)
 	prob.solve()
-	print("Status:", LpStatus[prob.status])
-	print ('------------------solving-------------------------')
-	# Solution
-	vectors = [] 
-	probabilities = [] 
+	if (LpStatus[prob.status] == 'Infeasible'):
+		print('There is no solution because you can not add more weight on a particular player without adding more weight on the other. ')
+	else:
+		print ('------------------solving-------------------------')
+		# Solution
+		vectors = [] 
+		probabilities = [] 
 
-	for v in prob.variables():
-		print ('decoding ', v.name, v.varValue)
-		if (v.name[0] == 'x'):
-			index = int(v.name[1])
-			print ('index = ', index)
-			result[index] = v.varValue
+		for v in prob.variables():
+			print ('decoding ', v.name, v.varValue)
+			if (v.name[0] == 'x'):
+				index = int(v.name[1])
+				print ('index = ', index)
+				result[index] = v.varValue
 
-	print ("objective=", value(prob.objective))
-	
-	for i in range(size):
-		print ('result = ', result[i])
+		print ("objective=", value(prob.objective))
+		
+		for i in range(size):
+			print ('result = ', result[i])
 
 
 def main():
@@ -71,7 +73,9 @@ def main():
 	TERMI = 40
 	ITER = 10
 
-	M = [[0,-1,1], [1,0,-1], [-1,1,0]]
+	# M = [[0,-1,1], [1,0,-1], [-1,1,0]] # can be solved using naive method
+	M = [[0,-2,3], [1,0,-2], [-1,1,0]] # can't be solved using naive method
+	# Status: Infeasible
 
 	size = 9
 	E = []
