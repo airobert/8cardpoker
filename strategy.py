@@ -2,67 +2,51 @@
 # ILLC @ UvA
 # ai.robert.wangshuai@gmail.com
 
-# Yang Xu
-# University of Liverpool
-# Y.Xu58@student.liverpool.ac.uk
-
 import random
 import copy
 
-ROCK = 0
-PAPER = 1
-SCISSORS = 2
-
 class PureStrategy (object):
 
-	def __init__ (self, step = None):
-		if (step == None):
-			self.step = random.choice([ROCK, PAPER, SCISSORS])
+	def __init__ (self, size = 0, value = -1):
+		self.value = 0
+		if value == -1:
+			self.value = random.randint(0, size-1) # any number in this range
 		else:
-			self.step = step
-
+			self.value = value
 
 	def convertToMixed(self):
-		return MixedStrategy(self.step)
+		m = MixedStrategy()
+		m.values[self.value] = 1
+		return m
 
 	def __str__(self): # override the default printing function
-		if (self.step == ROCK):
-			return 'ROCK'
-		elif (self.step == PAPER):
-			return 'PAPER'
-		else:
-			return 'SCISSORS'
+		return str(self.value)
 
 	def __eq__(self, other): 
-		return (self.step == other.step)
+		return (self.value == other.value)
 
 	def __hash__(self):
-		return self.step
+		return self.value
 
 
 class MixedStrategy (object):
 
-	def __init__(self, pure = None):
-		self.d = {}
-		if (pure != None): 
-			self.d[pure] = 1
+	def __init__(self):
+		self.values = {}
 
 	def support(self):
 		l = set()
-		for step in self.d.keys():
-			if self.d[step] != 0:
-				l.add(PureStrategy(step))
+		for k in self.values.keys():
+			if self.values[k] != 0:
+				l.add(PureStrategy(value = k))
 		return l
 
 	def __str__(self):
 		s = ''
-		for v in self.d.keys():
-			if self.d[v] != 0: 
-				s += str(v) + ' > '+str(self.d[v])[:5] + ' |\n'
+		for v in self.values.keys():
+			if self.values[v] != 0: 
+				s += str(v) + ' > '+str(self.values[v])[:5] + ' |\n'
 		return s
 
 	def reset(self):
-		self.d = {} 
-
-	def expectedPayoff(self, other): 
-		return 1
+		self.values = {} 

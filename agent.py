@@ -2,36 +2,48 @@
 # ILLC @ UvA
 # ai.robert.wangshuai@gmail.com
 
-# Yang Xu
-# University of Liverpool
-# Y.Xu58@student.liverpool.ac.uk
-
 import random
 import sys
 from pulp import *
 from strategy import *
 
+ROW = True
+COLUMN = False
+
 class Agent:
-	def __init__ (self, name, CARDSIZE):
-		self.name = name
-		self.CARDSIZE = CARDSIZE
-		self.piN = MixedStrategy()
-		self.N = self.piN.support()
+	def __init__ (self, size, role):
+		self.name = ''
+		if role == True:
+			self.name == 'Row Player'
+		else:
+			self.name == 'Column Player'
+		self.size = size
+		self.piN = PureStrategy(size = size).convertToMixed()
+		self.N = set()
 		self.M = set()
-		self.NMW = set ()
-		self.W = None
+		self.NMW = set()
+		self.W = set()
+		self.updateAll()
+
+		self.ep = 0 # the default payoff, we will have to check later
 
 	def updateNMW(self):
 		self.NMW =set()
 		self.NMW |= self.N 
 		self.NMW |= self.M 
-		if self.W != None:
+		if self.W != set():
 			self.NMW |= self.W.support()
+	
 	def updateN(self):
 		self.N = self.piN.support()
 
 	def updateM(self):
 		self.M = self.NMW - self.N
+
+	def updateAll(self):
+		self.updateN()
+		self.updateM()
+		self.updateNMW()
 
 	def info(self):
 		s = ''
@@ -41,4 +53,6 @@ class Agent:
 		s += 'M =\t'+str(self.M) + '\n'
 		return s
 
+	def search (self):
+		return PureStrategy(size = self.size).convertToMixed() # every time return only one strategy
 
