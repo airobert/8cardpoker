@@ -22,23 +22,23 @@ class Agent:
 		self.N = set()
 		self.M = set()
 		self.NMW = set()
-		self.W = set()
+		self.W = None
 		self.updateAll()
 
 		self.ep = 0 # the default payoff, we will have to check later
 
 	def updateNMW(self):
-		# self.NMW =set()
+		self.NMW = set()
 		self.NMW |= self.N 
 		self.NMW |= self.M 
-		if self.W != set():
+		if self.W != None:
 			self.NMW |= self.W.support()
 	
 	def updateN(self):
 		self.N = self.piN.support()
 
 	def updateM(self):
-		self.M = self.NMW - self.N
+		self.M = self.NMW - self.N  
 
 	def updateAll(self):
 		self.updateN()

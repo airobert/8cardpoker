@@ -17,7 +17,7 @@ def play(Matrix, r, c, termi_num):
 	iteration = 0
 
 
-	def payoffR(s, t):
+	def payoff(s, t):
 		ep = 0
 		for ss in s.support():
 			r = 0
@@ -26,49 +26,29 @@ def play(Matrix, r, c, termi_num):
 			ep += s.values[ss.value] * r
 		return ep 
 
+	print ('initially R:', r.piN)
+	print ('initially C:', c.piN)
 
-	def payoffC(s, t):
-		ep = 0
-		for ss in s.support():
-			r = 0
-			for tt in t.support():
-				r += Matrix[ss.value][tt.value] * -1 * t.values[tt.value]
-			ep += s.values[ss.value] * r
-		return ep  
-
-
-	while count < termi_num : # if after some runs, there is still no winning strategies
+	while count < termi_num : # if after some runs, there is still no winning strategy
 		iteration += 1
 		print ('\n\n\n ************This is a new iteration ', iteration, ' *************\n\n\n ')
-		T1 = r.search()
-		print ('the row player found: \n', T1)
-		T2 = c.search()
-		print ('the column player found: \n', T2)
-		flag = False
-		if (payoffR(T1, r.piN) > 0):
-			# it's a winning strategy
-			r.NMW |= T1.support() 
-			flag = True
-			print ('it is a winning strategy for the row player')
-		if (payoffC(T2, c.piN) > 0):
-			# it's a winning strategy 
-			c.NMW |= T2.support()
-			flag = True
-			print ('it is a winning strategy for the column player')
+		T2 = r.search()
+		print ('the row player found: \n', T2)
+		T1 = c.search()
+		print ('the column player found: \n', T1)
 
-		if not flag:
-			print ('\n no winning strategy found in this iteration! \n', count)
+		if (payoff(T2, c.piN) + payoff(T1, r.piN) <= 0):
+			print ('\n no winning strategy found in this iteration! \n')  
 			count += 1
 
 		else:
+			print ('this is a winning strategy')
 			# we have to compute the new piN for each player this time		
+			r.W = T2
+			c.W = T1
+			r.updateNMW()
+			c.updateNMW()
 
-
-			# create a matrix
-			# for x in r.NMW:
-			# 	print ('r.NMW: ', str(x))
-			# for y in c.NMW:
-			# 	print ('c.NMW: ', str(y))
 			size = len(r.NMW)
 			M = []
 			for i in r.NMW:
@@ -125,7 +105,7 @@ def play(Matrix, r, c, termi_num):
 
 
 			# -------------------  for the column player
-			prob2 = LpProblem("solve", LpMinimize) # the row player is always trying to maximise
+			prob2 = LpProblem("solve2", LpMinimize) # the row player is always trying to maximise
 
 			# define size-many variables
 			variables = []
@@ -142,38 +122,43 @@ def play(Matrix, r, c, termi_num):
 			for j in range(len(r.NMW)):
 				acc = 0
 				for i in range(len(c.NMW)):
-					acc += -1* M[j][i] * variables[i] 
-				prob += v >= acc # the row player will always want to minimise
+					acc +=  M[j][i] * variables[i] 
+				prob2 += v >= acc # the row player will always want to minimise
 
 			acc = 0
 			for x in variables: 
 				acc += x
-			prob += acc == 1
+			prob2 += acc == 1
 
 
-			GLPK().solve(prob)
+			GLPK().solve(prob2)
 			print ('------------------solving 2-------------------------')
 			# Solution
 			c.piN.reset() 
-			for v in prob.variables():
+			for v in prob2.variables():
 				for w in c.NMW:
 					if v.name == 'y'+ str(w.value) and v.varValue != 0:
 						c.piN.values[w.value] = v.varValue
 						# print (w.value, ' = ', v.varValue)
 
 			# print ("objective=", value(prob.objective))
-			c.ep = -1 * value(prob.objective)
+			c.ep = -1 * value(prob2.objective)
 			c.updateAll()
 
 			# test if the minmax theorem holds
 			print ('r.piN ', r.piN)
 			print ('c.piN ', c.piN)
 
+			print ('r has expected payoff ', r.ep)
+			print ('c has expected payoff ', c.ep)
 			if (r.ep == c.ep * -1):
-				print ('r has expected payoff ', r.ep)
-				print ('c has expected payoff ', c.ep)
 				print ('this was due to the minmax thm')
-		# count += 1
+
+			count = 0
+	print ('The matrix is:')
+	print (Matrix)
+	print ('Final R:', r.piN)
+	print ('Final C:', c.piN)
 
 def make_matrix(n,m):
 	matrix = []
@@ -189,7 +174,7 @@ def main():
 	# zero-sum asymmetric game
 	n = 3
 	m = 3
-	termi = 2
+	termi = 3
 
 	M = make_matrix(n,m)
 	print ('the matrix is')
