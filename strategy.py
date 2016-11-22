@@ -34,6 +34,20 @@ class MixedStrategy (object):
 	def __init__(self):
 		self.values = {}
 
+	def set_random(self, size):
+		pc = {}
+		total = 0
+		for i in range(size):
+				c = random.randint(0, size-1)
+				rd = random.randint(1, 5)
+				if c in pc.keys():
+					pc[c] = pc[c] + rd
+				else:
+					pc[c] = rd 
+				total += rd 
+		for p in pc.keys(): 
+			self.values[p] = pc[p] / total 
+
 	def support(self):
 		l = set()
 		for k in self.values.keys():
@@ -49,4 +63,5 @@ class MixedStrategy (object):
 		return s
 
 	def reset(self):
-		self.values = {} 
+		self.values = {}
+

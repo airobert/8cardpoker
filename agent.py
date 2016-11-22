@@ -28,7 +28,7 @@ class Agent:
 		self.ep = 0 # the default payoff, we will have to check later
 
 	def updateNMW(self):
-		self.NMW =set()
+		# self.NMW =set()
 		self.NMW |= self.N 
 		self.NMW |= self.M 
 		if self.W != set():
@@ -54,5 +54,7 @@ class Agent:
 		return s
 
 	def search (self):
-		return PureStrategy(size = self.size).convertToMixed() # every time return only one strategy
+		s = MixedStrategy()
+		s.set_random(self.size) 
+		return s # every time return only one strategy
 
