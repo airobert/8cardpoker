@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import datetime
-
+@profile
 def solve(M):
 	size = 9
 	names = range (size)
