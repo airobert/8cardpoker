@@ -10,14 +10,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from pulp import *
+import uuid
 
+RandomResponse = 0
+BestResponse = 1
 
-def play(Matrix, r, c, termi_num):
+def play(Matrix, r, c, termi_num, strategy = RandomResponse):
 	count = 0
 	iteration = 0
 
 
 	def payoff(s, t):
+		# print (s, 'play against', t , ';;\n')
 		ep = 0
 		for ss in s.support():
 			r = 0
@@ -32,12 +36,20 @@ def play(Matrix, r, c, termi_num):
 	while count < termi_num : # if after some runs, there is still no winning strategy
 		iteration += 1
 		print ('\n\n\n ************This is a new iteration ', iteration, ' *************\n\n\n ')
-		T2 = r.search()
-		print ('the row player found: \n', T2)
-		T1 = c.search()
-		print ('the column player found: \n', T1)
+		T1 = None
+		T2 = None
 
-		if (payoff(T2, c.piN) + payoff(T1, r.piN) <= 0):
+		if strategy == RandomResponse:
+			T2 = r.search()
+			T1 = c.search()
+		if strategy == BestResponse:
+			T1 = r.searchBest(Matrix, c.piN)
+			T2 = c.searchBest(Matrix, r.piN)
+
+		print ('the row player found: \n', T1)
+		print ('the column player found: \n', T2)
+
+		if (payoff(T1, c.piN) + payoff(T2, r.piN) <= 0):
 			print ('\n no winning strategy found in this iteration! \n')  
 			count += 1
 
@@ -63,7 +75,7 @@ def play(Matrix, r, c, termi_num):
 			# TODO : Robert needs to document these
 			
 			# ------------------- for the row player
-			prob = LpProblem("solve", LpMaximize) # the row player is always trying to maximise
+			prob = LpProblem("solve" + str(uuid.uuid4()), LpMaximize) # the row player is always trying to maximise
 
 			# define size-many variables
 			variables = []
@@ -105,7 +117,7 @@ def play(Matrix, r, c, termi_num):
 
 
 			# -------------------  for the column player
-			prob2 = LpProblem("solve2", LpMinimize) # the row player is always trying to maximise
+			prob2 = LpProblem("solve2" + str(uuid.uuid4()), LpMinimize) # the row player is always trying to maximise
 
 			# define size-many variables
 			variables = []
@@ -155,6 +167,7 @@ def play(Matrix, r, c, termi_num):
 				print ('this was due to the minmax thm')
 
 			count = 0
+
 	print ('The matrix is:')
 	print (Matrix)
 	print ('Final R:', r.piN)
@@ -182,7 +195,7 @@ def main():
 	print ('start the game!')
 	r = Agent(n, ROW) 
 	c = Agent(m, COLUMN)
-	play(M, r, c, termi)
+	play(M, r, c, termi, strategy = RandomResponse)
 
 
 

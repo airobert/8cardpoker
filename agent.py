@@ -6,19 +6,18 @@ import random
 import sys
 from pulp import *
 from strategy import *
+from pulp import *
+import uuid
 
 ROW = True
 COLUMN = False
 
 class Agent:
 	def __init__ (self, size, role):
-		self.name = ''
-		if role == True:
-			self.name == 'Row Player'
-		else:
-			self.name == 'Column Player'
+		self.role = ROW
 		self.size = size
-		self.piN = PureStrategy(size = size).convertToMixed()
+		self.piN = MixedStrategy()
+		self.piN.set_random(self.size)
 		self.N = set()
 		self.M = set()
 		self.NMW = set()
@@ -57,4 +56,53 @@ class Agent:
 		s = MixedStrategy()
 		s.set_random(self.size) 
 		return s # every time return only one strategy
+
+	def searchBest(self, Matrix, OpponentChoices):
+		
+		prob = LpProblem("solve" + str(uuid.uuid4()), LpMaximize) 
+		
+		# define size-many variables
+		variables = []
+		for w in range (self.size):
+			x = LpVariable('x'+str(w), 0, 1)
+			variables.append(x)
+
+		v = LpVariable("v", -100) # what is this 100 value? 
+
+		# Objective 
+		prob += v 
+
+		# Constraints
+		acc = 0
+		for k in OpponentChoices.values.keys():
+			ac = 0
+			for i in range(self.size):
+				
+				if (self.role == ROW):
+					ac += Matrix[i][k] * variables[i]
+				else :
+					ac += Matrix[k][i] * variables[i] * -1
+			acc += ac * OpponentChoices.values[k]
+
+		prob += v == acc
+
+		acc = 0
+		for x in variables: 
+			acc += x
+		prob += acc == 1
+
+
+		GLPK().solve(prob)
+		print ('------------------Best Response calculating -------------------------')
+		response = MixedStrategy()
+		# Solution
+		for v in prob.variables():
+			for w in range (self.size): 
+				if v.name == 'x'+ str(w) and v.varValue != 0:
+					response.values[w] = v.varValue
+					# print (w.value, ' = ', v.varValue)
+		return response
+
+
+
 
